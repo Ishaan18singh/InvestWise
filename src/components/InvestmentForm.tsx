@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Investment } from '../types/investment';
 
@@ -31,6 +31,8 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     frequency: 12
   });
 
+  const [estimatedReturn, setEstimatedReturn] = useState<number | null>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.name && formData.principal > 0 && formData.time > 0) {
@@ -58,16 +60,35 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     }));
   };
 
+  const calculateEstimatedReturn = (data: typeof formData) => {
+    const { principal, rate, time, type } = data;
+
+    if (type === 'FD' || type === 'PPF' || type === 'NSC' || type === 'ELSS') {
+      return Math.round(principal * Math.pow(1 + rate / 100, time));
+    }
+
+    if (type === 'SIP' || type === 'RD') {
+      const monthlyRate = rate / 100 / 12;
+      const months = time * 12;
+      return Math.round(principal * (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate)));
+    }
+
+    return null;
+  };
+
+  // 🔁 Update estimated return when form data changes
+  useEffect(() => {
+    const result = calculateEstimatedReturn(formData);
+    setEstimatedReturn(result);
+  }, [formData]);
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-bold text-gray-800 mb-6">Add Investment</h2>
-      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Investment Name
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Investment Name</label>
             <input
               type="text"
               value={formData.name}
@@ -77,11 +98,8 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
               required
             />
           </div>
-          
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Investment Type
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Investment Type</label>
             <select
               value={formData.type}
               onChange={(e) => handleTypeChange(e.target.value as Investment['type'])}
@@ -110,11 +128,9 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
               required
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Interest Rate (% per annum)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Interest Rate (% p.a.)</label>
             <input
               type="number"
               value={formData.rate}
@@ -126,11 +142,9 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
               required
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Time Period (Years)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Time Period (Years)</label>
             <input
               type="number"
               value={formData.time}
@@ -151,6 +165,12 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
           Add Investment
         </button>
       </form>
+
+      {estimatedReturn !== null && (
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
+          📈 <strong>Estimated Return:</strong> ₹{estimatedReturn.toLocaleString()}
+        </div>
+      )}
 
       {investments.length > 0 && (
         <div className="mt-6">
@@ -178,3 +198,4 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     </div>
   );
 };
+

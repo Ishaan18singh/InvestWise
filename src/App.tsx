@@ -9,23 +9,28 @@ import { calculateInvestment } from './utils/calculations';
 function App() {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [results, setResults] = useState<InvestmentResult[]>([]);
+  const [livePreview, setLivePreview] = useState<InvestmentResult | null>(null);
 
   const handleAddInvestment = (investment: Investment) => {
     const newInvestments = [...investments, investment];
     setInvestments(newInvestments);
-    
-    // Calculate results for all investments
+
     const newResults = newInvestments.map(inv => calculateInvestment(inv));
     setResults(newResults);
+    setLivePreview(null); // Clear preview after adding
   };
 
   const handleRemoveInvestment = (id: string) => {
     const newInvestments = investments.filter(inv => inv.id !== id);
     setInvestments(newInvestments);
-    
-    // Recalculate results
+
     const newResults = newInvestments.map(inv => calculateInvestment(inv));
     setResults(newResults);
+  };
+
+  const handleLivePreview = (investment: Investment) => {
+    const previewResult = calculateInvestment(investment);
+    setLivePreview(previewResult);
   };
 
   return (
@@ -66,7 +71,17 @@ function App() {
               onAddInvestment={handleAddInvestment}
               onRemoveInvestment={handleRemoveInvestment}
               investments={investments}
+              onPreviewChange={handleLivePreview}
             />
+
+            {livePreview && (
+              <div className="mt-4 p-4 bg-white rounded-lg shadow text-sm text-gray-800">
+                <h4 className="font-semibold mb-2 text-blue-600">Live Return Preview:</h4>
+                <p>Total Invested: ₹{livePreview.totalInvested.toLocaleString()}</p>
+                <p>Estimated Returns: ₹{livePreview.totalReturns.toLocaleString()}</p>
+                <p>Maturity Amount: ₹{livePreview.maturityAmount.toLocaleString()}</p>
+              </div>
+            )}
           </div>
 
           {/* Charts and Results */}
