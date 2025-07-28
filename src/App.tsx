@@ -101,7 +101,7 @@ function App() {
               
             </p>
             <p>
-              Investment calculations are estimates. Please consult with a financial advisor for actual investment decisions.
+              Investment calculations are estimates.Please consult with a financial advisor for actual investment decisions.
             </p>
           </div>
         </footer>
