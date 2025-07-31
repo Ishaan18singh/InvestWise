@@ -5,6 +5,7 @@ import { InvestmentForm } from './components/InvestmentForm';
 import { ComparisonChart } from './components/ComparisonChart';
 import { ResultsTable } from './components/ResultsTable';
 import { calculateInvestment } from './utils/calculations';
+import { ExportButtons } from './components/ExportButtons'; // ✅ Import here
 
 function App() {
   const [investments, setInvestments] = useState<Investment[]>([]);
@@ -85,7 +86,7 @@ function App() {
           </div>
 
           {/* Charts and Results */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-8" id="export-area">
             {results.length > 0 && <ComparisonChart results={results} />}
             {results.length === 0 && (
               <div className="bg-white rounded-lg shadow-md p-12 text-center">
@@ -101,22 +102,44 @@ function App() {
                 </div>
               </div>
             )}
+
+            {/* Results Table */}
+            {results.length > 0 && (
+              <div className="mt-8">
+                <ResultsTable results={results} />
+              </div>
+            )}
           </div>
         </div>
+         
+        {results.length > 0 && (
+         <div className="flex justify-end">
+          <button
+           onClick={() => {
+           setInvestments([]);
+           setResults([]);
+           localStorage.removeItem("investments");
+        }}
+         className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 text-sm"
+      >
+        Clear All Investments
+       </button>
+     </div>
+  )}
 
-        {/* Results Table */}
-        <div className="mt-8">
-          <ResultsTable results={results} />
-        </div>
-
+        {/* ✅ Export Buttons */}
+        {results.length > 0 && (
+          <div className="mt-8 flex justify-center">
+            <ExportButtons />
+          </div>
+        )}
+        
         {/* Footer */}
         <footer className="mt-12 py-8 border-t border-gray-200">
           <div className="text-center text-sm text-gray-500">
-            <p className="mb-2">
-              
-            </p>
+            <p className="mb-2"></p>
             <p>
-              Investment calculations are estimates.Please consult with a financial advisor for actual investment decisions.
+              Investment calculations are estimates. Please consult with a financial advisor for actual investment decisions.
             </p>
           </div>
         </footer>

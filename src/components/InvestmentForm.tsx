@@ -1,6 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Investment } from '../types/investment';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
+const bankOffers: Record<string, { name: string; rate: number; time?: number }[]> = {
+  FD: [
+    { name: 'SBI FD - 7.1%', rate: 7.1, time: 5 },
+    { name: 'HDFC FD - 7.25%', rate: 7.25, time: 5 },
+    { name: 'ICICI FD - 7.0%', rate: 7.0, time: 5 }
+  ],
+  PPF: [
+    { name: 'SBI PPF - 7.5%', rate: 7.5, time: 15 },
+    { name: 'Post Office PPF - 7.5%', rate: 7.5, time: 15 }
+  ],
+  SIP: [
+    { name: 'HDFC SIP - 12%', rate: 12, time: 10 },
+    { name: 'Axis SIP - 13.2%', rate: 13.2, time: 10 }
+  ],
+  RD: [
+    { name: 'SBI RD - 6.5%', rate: 6.5, time: 5 },
+    { name: 'HDFC RD - 6.75%', rate: 6.75, time: 5 }
+  ],
+  NSC: [
+    { name: 'India Post NSC - 7.7%', rate: 7.7, time: 5 }
+  ],
+  ELSS: [
+    { name: 'Mirae Asset ELSS - 14.5%', rate: 14.5, time: 3 },
+    { name: 'Axis ELSS - 13.9%', rate: 13.9, time: 3 }
+  ]
+};
 
 interface InvestmentFormProps {
   onAddInvestment: (investment: Investment) => void;
@@ -32,6 +62,7 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
   });
 
   const [estimatedReturn, setEstimatedReturn] = useState<number | null>(null);
+  const [selectedOffer, setSelectedOffer] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +79,7 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
         time: 5,
         frequency: 12
       });
+      setSelectedOffer('');
     }
   };
 
@@ -58,6 +90,20 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
       type,
       rate: typeConfig?.defaultRate || 6.5
     }));
+    setSelectedOffer('');
+  };
+
+  const handleOfferSelect = (offerName: string) => {
+    const offer = bankOffers[formData.type].find(o => o.name === offerName);
+    if (offer) {
+      setFormData(prev => ({
+        ...prev,
+        name: offer.name,
+        rate: offer.rate,
+        time: offer.time ?? prev.time
+      }));
+      setSelectedOffer(offer.name);
+    }
   };
 
   const calculateEstimatedReturn = (data: typeof formData) => {
@@ -76,7 +122,6 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     return null;
   };
 
-  // 🔁 Update estimated return when form data changes
   useEffect(() => {
     const result = calculateEstimatedReturn(formData);
     setEstimatedReturn(result);
@@ -88,17 +133,6 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Investment Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Bank FD 2024"
-              required
-            />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Investment Type</label>
             <select
               value={formData.type}
@@ -109,6 +143,20 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 <option key={type.value} value={type.value}>
                   {type.label}
                 </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Choose Offer</label>
+            <select
+              value={selectedOffer}
+              onChange={(e) => handleOfferSelect(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- Select Offer --</option>
+              {bankOffers[formData.type]?.map((offer) => (
+                <option key={offer.name} value={offer.name}>{offer.name}</option>
               ))}
             </select>
           </div>
@@ -198,4 +246,3 @@ export const InvestmentForm: React.FC<InvestmentFormProps> = ({
     </div>
   );
 };
-

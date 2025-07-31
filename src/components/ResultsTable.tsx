@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrendingUp, DollarSign, Calendar, Percent } from 'lucide-react';
 import { InvestmentResult } from '../types/investment';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ResultsTableProps {
   results: InvestmentResult[];
@@ -30,130 +31,110 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ results }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <motion.div
+      className="bg-white rounded-lg shadow-md p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       <h2 className="text-xl font-bold text-gray-800 mb-6">Investment Results</h2>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Investment</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Principal/Monthly</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Rate</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Duration</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Maturity Amount</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Interest Earned</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Total Return</th>
+              {['Investment', 'Type', 'Principal/Monthly', 'Rate', 'Duration', 'Maturity Amount', 'Interest Earned', 'Total Return'].map(header => (
+                <th key={header} className="text-left py-3 px-4 font-semibold text-gray-700">{header}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {results.map((result, _index) => {
-              const totalInvested = result.investment.type === 'SIP' || result.investment.type === 'RD' 
-                ? result.investment.principal * result.investment.time * (result.investment.frequency || 12)
-                : result.investment.principal * result.investment.time;
-              
-              const totalReturn = ((result.totalInterest / totalInvested) * 100);
-              
-              return (
-                <tr key={result.investment.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-4">
-                    <div className="font-medium text-gray-800">
-                      {result.investment.name}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(result.investment.type)}`}>
-                      {result.investment.type}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-gray-600">
-                    {formatCurrency(result.investment.principal)}
-                  </td>
-                  <td className="py-4 px-4 text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Percent size={14} />
-                      {result.investment.rate}%
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      {result.investment.time} years
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 font-semibold text-gray-800">
-                    {formatCurrency(result.maturityAmount)}
-                  </td>
-                  <td className="py-4 px-4 text-green-600 font-medium">
-                    {formatCurrency(result.totalInterest)}
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-1 text-blue-600 font-medium">
-                      <TrendingUp size={14} />
-                      {totalReturn.toFixed(1)}%
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+            <AnimatePresence>
+              {results.map((result, index) => {
+                const totalInvested = ['SIP', 'RD'].includes(result.investment.type)
+                  ? result.investment.principal * result.investment.time * (result.investment.frequency || 12)
+                  : result.investment.principal * result.investment.time;
+                const totalReturn = (result.totalInterest / totalInvested) * 100;
+
+                return (
+                  <motion.tr
+                    key={result.investment.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <td className="py-4 px-4 font-medium text-gray-800">{result.investment.name}</td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(result.investment.type)}`}>
+                        {result.investment.type}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-gray-600">{formatCurrency(result.investment.principal)}</td>
+                    <td className="py-4 px-4 text-gray-600 flex items-center gap-1">
+                      <Percent size={14} />{result.investment.rate}%
+                    </td>
+                    <td className="py-4 px-4 text-gray-600 flex items-center gap-1">
+                      <Calendar size={14} />{result.investment.time} years
+                    </td>
+                    <td className="py-4 px-4 font-semibold text-gray-800">{formatCurrency(result.maturityAmount)}</td>
+                    <td className="py-4 px-4 text-green-600 font-medium">{formatCurrency(result.totalInterest)}</td>
+                    <td className="py-4 px-4 text-blue-600 font-medium flex items-center gap-1">
+                      <TrendingUp size={14} />{totalReturn.toFixed(1)}%
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </AnimatePresence>
           </tbody>
         </table>
       </div>
 
       {/* Summary Cards */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="text-blue-600" size={20} />
-            <h3 className="font-semibold text-blue-800">Highest Returns</h3>
-          </div>
-          {results.length > 0 && (
-            <div>
-              <p className="text-sm text-blue-600 mb-1">
-                {results.reduce((max, result) => 
-                  result.maturityAmount > max.maturityAmount ? result : max
-                ).investment.name}
-              </p>
-              <p className="text-lg font-bold text-blue-800">
-                {formatCurrency(Math.max(...results.map(r => r.maturityAmount)))}
-              </p>
+        {[
+          {
+            title: 'Highest Returns',
+            icon: <DollarSign className="text-blue-600" size={20} />,
+            bg: 'bg-blue-50',
+            color: 'text-blue-800',
+            label: results.reduce((max, r) => r.maturityAmount > max.maturityAmount ? r : max).investment.name,
+            value: formatCurrency(Math.max(...results.map(r => r.maturityAmount)))
+          },
+          {
+            title: 'Best Interest Rate',
+            icon: <TrendingUp className="text-green-600" size={20} />,
+            bg: 'bg-green-50',
+            color: 'text-green-800',
+            label: results.reduce((max, r) => r.investment.rate > max.investment.rate ? r : max).investment.name,
+            value: `${Math.max(...results.map(r => r.investment.rate)).toFixed(1)}%`
+          },
+          {
+            title: 'Total Interest',
+            icon: <Calendar className="text-purple-600" size={20} />,
+            bg: 'bg-purple-50',
+            color: 'text-purple-800',
+            label: 'Across all investments',
+            value: formatCurrency(results.reduce((sum, r) => sum + r.totalInterest, 0))
+          }
+        ].map((card, i) => (
+          <motion.div
+            key={card.title}
+            className={`${card.bg} rounded-lg p-4`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              {card.icon}
+              <h3 className={`font-semibold ${card.color}`}>{card.title}</h3>
             </div>
-          )}
-        </div>
-
-        <div className="bg-green-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="text-green-600" size={20} />
-            <h3 className="font-semibold text-green-800">Best Interest Rate</h3>
-          </div>
-          {results.length > 0 && (
-            <div>
-              <p className="text-sm text-green-600 mb-1">
-                {results.reduce((max, result) => 
-                  result.investment.rate > max.investment.rate ? result : max
-                ).investment.name}
-              </p>
-              <p className="text-lg font-bold text-green-800">
-                {Math.max(...results.map(r => r.investment.rate)).toFixed(1)}%
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-purple-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Calendar className="text-purple-600" size={20} />
-            <h3 className="font-semibold text-purple-800">Total Interest</h3>
-          </div>
-          <div>
-            <p className="text-sm text-purple-600 mb-1">Across all investments</p>
-            <p className="text-lg font-bold text-purple-800">
-              {formatCurrency(results.reduce((sum, result) => sum + result.totalInterest, 0))}
-            </p>
-          </div>
-        </div>
+            <p className={`text-sm ${card.color.replace('800', '600')} mb-1`}>{card.label}</p>
+            <p className={`text-lg font-bold ${card.color}`}>{card.value}</p>
+          </motion.div>
+        ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
